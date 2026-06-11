@@ -38,12 +38,14 @@ jobs:
       - name: Set up Juju and charm development tools
         run: sudo concierge prepare -p machine
       - name: Pack the charm
+        working-directory: myapp-machine
         run: charmcraft pack
       - name: Run integration tests
+        working-directory: myapp-machine
         run: tox -e integration -- --juju-dump-logs logs
       - name: Upload logs
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: juju-dump-logs
-          path: logs
+          path: myapp-machine/logs
