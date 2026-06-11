@@ -1,0 +1,51 @@
+name: Charmcraft main's machine profile
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/charmcraft-main-machine.yaml
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  generate-and-test:
+    name: Test a generated charm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
+      - name: Generate a charm
+        run: |
+          mkdir myapp-machine
+          uvx git+https://github.com/canonical/charmcraft init \
+            --profile machine \
+            --project-dir myapp-machine \
+            --author Charmer
+      - name: Set up tox and tox-uv
+        run: uv tool install tox --with tox-uv
+      - name: Lock, lint, and run unit tests
+        working-directory: myapp-machine
+        run: |
+          uv lock
+          uvx --python 3.10 --with tox-uv tox -e lint,unit
+      - name: Set up Concierge
+        run: sudo snap install --classic concierge
+      - name: Set up Juju and charm development tools
+        run: sudo concierge prepare -p machine
+      - name: Pack the charm
+        working-directory: myapp-machine
+        run: charmcraft pack
+      - name: Run integration tests
+        working-directory: myapp-machine
+        run: tox -e integration -- --juju-dump-logs logs
+      - name: Upload logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: juju-dump-logs
+          path: myapp-machine/logs
