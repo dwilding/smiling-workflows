@@ -19,9 +19,12 @@ jobs:
           persist-credentials: false
       - name: Set up uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57  # v8.0.0
-      - name: Set up tox and tox-uv
-        run: uv tool install tox --with tox-uv
       - name: Generate a charm
         run: |
           mkdir myapp-machine
-          uvx git+https://github.com/canonical/charmcraft init --profile machine --project-dir myapp-machine
+          uvx git+https://github.com/canonical/charmcraft init \
+            --profile machine \
+            --project-dir myapp-machine \
+            --author Charmer
+      - name: Set up tox and tox-uv
+        run: uv tool install tox --with tox-uv
