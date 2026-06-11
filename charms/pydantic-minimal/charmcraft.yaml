@@ -25,10 +25,8 @@ assumes:
 
 parts:
   charm:
-    plugin: uv
+    plugin: charm
     source: .
-    build-snaps:
-      - astral-uv
 
 # (Optional) Configuration options for the charm
 # This config section defines charm config options, and populates the Configure

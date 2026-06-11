@@ -18,21 +18,22 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
-      - name: Set up tox and tox-uv
-        run: uv tool install tox --with tox-uv
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+      - name: Install tox
+        run: python -m pip install --upgrade pip tox
       - name: Lint and run unit tests
         working-directory: charms/pydantic-minimal
-        run: |
-          uvx --python 3.10 --with tox-uv tox -e lint,unit
+        run: tox -e lint,unit
       - name: Set up Concierge
         run: sudo snap install --classic concierge
       - name: Set up Juju and charm development tools
         run: sudo concierge prepare -p machine
       - name: Pack the charm
         working-directory: charms/pydantic-minimal
-        run: charmcraft pack
+        run: charmcraft pack --destructive-mode
       - name: Run integration tests
         working-directory: charms/pydantic-minimal
         run: tox -e integration -- --juju-dump-logs logs
